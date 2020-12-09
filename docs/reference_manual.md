@@ -20,6 +20,15 @@
   + [Materials.Flags](#materialsflags)
   + [Materials.Data](#materialsdata)
   + [Materials.Texture Maps](#materialstexture-maps)
+- [Skeletons and Skinning](#skeletons-and-skinning)
+  + [XSI vs Blender](#xsi-vs-blender)
+  + [Example Skin Hierarchy](#example-skin-hierarchy)
+  + [Example Bone-Parent Hierarchy](#example-bone-parent-hierarchy)
+  + [Skinning Notes](#skinning-notes)
+- [Animation](#animation)
+  + [Actions and Animations](#actions-and-animations)
+  + [Exporter Animation Options](#exporter-animation-options)
+  + [Animation Notes](#animation-notes) 
 - [Appendices](#appendices)
   + [Appendix Detail Map Blending](#appendix-detail-map-blending)
   + [Appendix Normal Map Example](#appendix-normal-map-example)
@@ -501,25 +510,52 @@ Distortion maps control how Refractive materials distort the scene behind them. 
 
 ## Skeletons and Skinning
 
-### XSI/ZeroEngine vs Blender
+### XSI vs Blender
 
 XSI has a very free-form take on skeletons and skinning.  Models can be skinned to other models in a rather arbitrary manner, whereas in Blender, a model can only be skinned if it is parented to an armature and can only skin to bones in that armature.  
 
-Moreover, ZeroEditor requires that skinned models be parents of their skeletons, which directly contradicts the structure Blender mandates!  The exporter works around this by reparenting skinned objects to their armature's parent, and reparenting the root bones of the armature to the skin object:      
+Moreover, ZeroEditor requires that skinned models be parents of their skeletons, which directly contradicts the structure Blender mandates!  The exporter works around this by reparenting skinned objects to their armature's parent, and reparenting the root bones of the armature to the skin object.  Note in the examples below that the armature's bones are not technically part of the scene's object hierarchy in Blender, as they belong to the armature object itself.   
 
+### Example Skin Hierarchy
+Upon export, skinned objects are reparented to the armature's parent, and the armature skeleton reparented to the main skinned object:
 
-Blender hierarchy | Exported hierarchy
-------------------| ------------------
-* dummyroot       | * dummyroot
-  * Armature      |   * skinned_obj
-    [Begin Armature Data] |     * bone_root
-    * bone_root           |       * bone_one
-      * bone_one          |       * bone_two
-      * bone_two          |   * sv_skinned_obj
-    [End Armature Data]   |   * skinned_obj_lowrez
-    * skinned_obj         |
-    * sv_skinned_obj      |
-    * skinned_obj_lowrez  |   
+#### Blender 
+* dummyroot       
+  * Armature     
+    * bone_root          
+      * bone_one       
+      * bone_two  
+    * skinned_obj
+    * sv_skinned_obj
+    * skinned_obj_lowrez  
+    
+#### Exported
+* dummyroot
+  * skinned_obj
+    * bone_root
+      * bone_one
+      * bone_two
+  * sv_skinned_obj
+  * skinned_obj_lowrez
+  
+### Example Bone Parent Hierarchy
+The same goes for objects that are children of an armature, but are parented directly to bones in that armature, as could be the case in a simple door:
+
+#### Blender
+* dummyroot
+  * Armature
+    * bone_doorleft
+    * bone_doorright
+    * left_door_mesh  (bone parent: bone_doorleft)
+    * right_door_mesh (bone parent: bone_doorright)
+
+#### Exported
+* dummyroot
+  * bone_doorleft
+    * left_door_mesh
+  * bone_doorright
+    * right_door_mesh
+  
 
 ### Skinning Notes
 
@@ -529,60 +565,38 @@ Skinning/vertex-weighting in Blender is a very complex topic, these docs will fo
 
 2. An object will be exported as a skin if it is parented to an armature and has vertex groups.  The skeleton will be reparented to the skin object which is not named as a collision or LOD object.  
 
-3. As is the case with exporting in XSI, make sure you apply transforms on your skin objects before exporting!  Make sure the armature object and its parent (if any) have the same rotation and position.
-
+3. As is the case with exporting in XSI, make sure you apply transforms on your skinned objects before exporting! 
 
 
 
 ## Animation
 
-This exporter can export the actions used by the armature in the scene as animations.  SWBF2 animates models at a fixed framerate of ~30 fps, so when animating your model in Blender, the number of frames / 30 is the duration of your animation in game.  Don't worry about using as few keyframes as possible to save a smaller animation.  The exporter will record bone positions for each frame of the animation, regardless of whether or not the frame is actually keyed to.
+### Actions and Animations
+
+This exporter can convert Actions used by Armatures to ZeroEngine-compatible animations.  When [exporting an action](#Export With Animation), all frames between and including the first and last *keyed frames* of the action will be included.  Don't worry about using as few keyframes as possible to save a smaller animation.  The exporter will record bone positions for each frame of the animation, regardless of whether or not the frame is actually keyed.
+
+If you have armature bones that are weighted to by a skinned object, but you do not wish for them to be exported as part of the animated skeleton, don't keyframe them.  The exported animation will only include bones that are explicitly keyframed at least once in the action.
 
 
 ### Exporter Animation Options
 
-#### ```Export Skeleton Only```
+#### ```Export As Skeleton```
 
 Excludes geometry data from the exported msh file, since ```zenasset``` ignores it.  Skins and static meshes will be exported as nulls.  However, since ```zenasset``` does mandate the root object have some material and geometry data, this option will add in dummy geometry and a material to the msh file's scene root.  This isn't necessary for exporting animations, but is highly recommended to avoid writing unnecessary data and ensuring the root  object is acceptable to ```zenasset```.
 
-#### ```Export Animated Object```
+#### ```Export With Animation```
 
-If checked, the action currently attached to the scene's armature will be included in the exported msh file as an animation.  The exporter goes through the action frame by frame, writing the position + rotation of every bone in the armature, plus the scene root.  You do not have to explicitly animate the scene root!
+If checked, the action currently attached to the scene's armature will be included in the exported msh file as an animation.  The exporter goes through the action frame by frame, writing the position and rotation of every bone in the armature.  Dummy frames are also included for the scene root.  You do not have to explicitly animate the scene root!
 
+So, if you wish to export an animation to be munged, it is best to select both ```Export As Skeleton``` and ```Export With Animated.```
 
-So, if you wish to export an animation to be munged, it is best to select both ```Export Skeleton Only``` and ```Export Animated Object.```
+### Animation notes:  
 
-#### Minor notes:  
+1. If exporting an animation, your exported MSH file's name should be that of the animation/action itself.
 
-- If exporting an animation, your exported MSH file's name should be that of the animation/action itself.
-- Bone constraints are not exported 
-- 
+2. Bone constraints are not exported.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+3. Don't include multiple armatures in one export!
 
 
 ## Appendices
