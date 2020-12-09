@@ -573,7 +573,7 @@ Skinning/vertex-weighting in Blender is a very complex topic, these docs will fo
 
 ### Actions and Animations
 
-This exporter can convert Actions used by Armatures to ZeroEngine-compatible animations.  When [exporting an action](#Export With Animation), all frames between and including the first and last *keyed frames* of the action will be included.  Don't worry about using as few keyframes as possible to save a smaller animation.  The exporter will record bone positions for each frame of the animation, regardless of whether or not the frame is actually keyed.
+This exporter can convert Actions used by Armatures to ZeroEngine-compatible animations.  When [exporting an action](#export-with-animation), all frames between and including the first and last *keyed frames* of the action will be included.  Don't worry about using as few keyframes as possible to save a smaller animation.  The exporter will record bone positions for each frame of the animation, regardless of whether or not the frame is actually keyed.
 
 If you have armature bones that are weighted to by a skinned object, but you do not wish for them to be exported as part of the animated skeleton, don't keyframe them.  The exported animation will only include bones that are explicitly keyframed at least once in the action.
 
@@ -588,7 +588,7 @@ Excludes geometry data from the exported msh file, since ```zenasset``` ignores 
 
 If checked, the action currently attached to the scene's armature will be included in the exported msh file as an animation.  The exporter goes through the action frame by frame, writing the position and rotation of every bone in the armature.  Dummy frames are also included for the scene root.  You do not have to explicitly animate the scene root!
 
-So, if you wish to export an animation to be munged, it is best to select both ```Export As Skeleton``` and ```Export With Animated.```
+So, if you wish to export an animation to be munged, it is best to select both ```Export As Skeleton``` and ```Export With Animation.```
 
 ### Animation notes:  
 
