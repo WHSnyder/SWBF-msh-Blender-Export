@@ -16,7 +16,8 @@ MAX_MSH_VERTEX_COUNT = 32767
 
 def gather_models(apply_modifiers: bool, export_target: str, skeleton_only: bool) -> Tuple[List[Model], bpy.types.Object]:
     """ Gathers the Blender objects from the current scene and returns them as a list of
-        Model objects. """
+        Model objects.  Also returns the armature if one is found among the selected models, in case
+        animations are to be exported."""
 
     depsgraph = bpy.context.evaluated_depsgraph_get()
     parents = create_parents_set()
@@ -43,7 +44,7 @@ def gather_models(apply_modifiers: bool, export_target: str, skeleton_only: bool
 
         model = Model()
         model.name = obj.name
-        model.model_type = get_model_type(obj, skeleton_only)
+        model.model_type = get_model_type(obj) if not skeleton_only else ModelType.NULL
         model.hidden = get_is_model_hidden(obj)
 
         transform = obj.matrix_local
@@ -59,8 +60,9 @@ def gather_models(apply_modifiers: bool, export_target: str, skeleton_only: bool
         else:
             if obj.parent is not None:
                 if obj.parent.type == "ARMATURE":
-                    model.parent = obj.parent.parent.name
-                    transform = obj.parent.matrix_local @ transform
+                    # Reparent since we exclude armature objects
+                    armature_parent = obj.parent.parent
+                    model.parent = armature_parent.name if armature_parent is not None else ""
                 else:
                     model.parent = obj.parent.name
 
@@ -68,7 +70,8 @@ def gather_models(apply_modifiers: bool, export_target: str, skeleton_only: bool
         model.transform.rotation = convert_rotation_space(local_rotation)  
         model.transform.translation = convert_vector_space(local_translation)
 
-        if obj.type in MESH_OBJECT_TYPES:
+
+        if model.model_type == ModelType.STATIC or model.model_type == ModelType.SKIN:
 
             mesh = obj.to_mesh()
             model.geometry = create_mesh_geometry(mesh, obj.vertex_groups)
@@ -224,10 +227,10 @@ def create_mesh_geometry(mesh: bpy.types.Mesh, has_weights: bool) -> List[Geomet
 
     return segments
 
-def get_model_type(obj: bpy.types.Object, skel_only: bool) -> ModelType:
+def get_model_type(obj: bpy.types.Object) -> ModelType:
     """ Get the ModelType for a Blender object. """
 
-    if obj.type in MESH_OBJECT_TYPES and not skel_only:
+    if obj.type in MESH_OBJECT_TYPES:
         if obj.vertex_groups:
             return ModelType.SKIN
         else:

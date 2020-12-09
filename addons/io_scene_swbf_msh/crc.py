@@ -1,12 +1,7 @@
-from struct import pack
+'''
+Full credits to Benedikt Schatz from https://github.com/Schlechtwetterfront/xsizetools/blob/master/Application/Modules/msh2_crc.py    
+''' 
 
-
-class CRCError(Exception):
-    def __init__(self, val):
-        self.val = val
-
-    def __str__(self):
-        return '{0}'.format(self.val)
 
 # CRC lookup table.
 TABLE_32 = (
@@ -128,15 +123,3 @@ def crc(string):
             ind = ind ^ TOLOWER[ord(char)]
             crc_ = return_lowest_bits(crc_ << 8) ^ TABLE_32[ind]
     return return_lowest_bits(~crc_)
-
-
-def strcrc(string):
-    '''Calculate the Zero CRC and return it in a structure
-    usable in .msh files.'''
-    return pack('<I', crc(string))
-
-
-def compare_crc_adv(possible_strings, crc_):
-    for string in possible_strings:
-        if crc_ == strcrc(string):
-            return string

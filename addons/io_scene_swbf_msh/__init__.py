@@ -99,13 +99,14 @@ class ExportMSH(Operator, ExportHelper):
 
     export_with_animation: BoolProperty(
         name="Export With Animation",
-        description="Includes animation data extracted from the action currently set on armature.",
+        description="Includes animation data extracted from the action currently set on armature.  Dummy frames are automatically added for the scene root.",
         default=False
     )
 
     export_as_skeleton: BoolProperty(
-        name="Export Objects As Skeleton",
-        description="Check if you intend to export skeleton data for consumption by ZenAsset.",
+        name="Export As Skeleton",
+        description='''Ignore geometry, but preserve scene hierarchy.  Also adds a material and a triangle to the root object,
+        in order to satisfy zenasset.  Check if you intend to export skeleton data for consumption by ZenAsset.''',
         default=False
     )
 
