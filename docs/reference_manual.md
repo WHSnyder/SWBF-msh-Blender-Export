@@ -577,11 +577,9 @@ This guide assumes you know how Armatures work, and how to switch between, creat
 
 ### Actions and Animations
 
-This exporter can convert Actions used by Armatures to ZeroEngine-compatible animations.  If an armature is found among the objects to be exported, the exporter can include the armature's currently set Action as an animation in the resulting file.  As of now, animation via Armature is the only way to export Blender Actions.
+This exporter can convert Actions used by Armatures to ZeroEngine-compatible animations.  If an armature is found among the objects to be exported, the exporter can include the armature's currently set Action as an animation in the msh file.  As of now, animation via Armature is the only way to export Blender Actions.
 
-Since ```zenasset``` only supports an animation frame rate of 29.97 fps, 
-
-When exporting an Action, all frames between and including the first and last *keyframes* of the Action will be included.  For example, if the first and last keyframes are 0 and 5, the exporter will record bone positions at frames 0, 1, 2, 3, 4, and 5, regardless of how many keyframes exist in between.  Don't worry about using as few keyframes as possible to save a smaller animation as the exporter will record bone positions and rotations for each frame.
+When exporting an Action, all frames between and including the first and last *keyframes* of the Action will be included.  For example, if the first and last keyframes are 0 and 5, the exporter will record bone positions at frames 0, 1, 2, 3, 4, and 5, regardless of how many frames are actually keyed.  Don't worry about using as few keyframes as possible to save a smaller animation as the exporter will record bone positions and rotations for each frame.
 
 If you have armature bones that are weighted to by a skinned object, but you do not wish for them to be exported as part of the animated skeleton, don't keyframe them.  The exported animation will only include bones that are explicitly keyframed at least once in the Action.
 
@@ -594,7 +592,7 @@ Excludes geometry data from the exported msh file, since ```zenasset``` ignores 
 
 #### ```Export With Animation```
 
-If checked, the action currently attached to the scene's armature will be included in the exported msh file as an animation.  The exporter goes through the action frame by frame, writing the position and rotation of every bone in the armature.  Dummy frames are also included for the scene root.  You do not have to explicitly animate the scene root!
+If checked, the action currently attached to the scene's armature will be included in the exported msh file as an animation.  Dummy frames are also included for the scene root to satisfy ```zenasset```.  You do not have to explicitly animate the scene root!
 
 So, if you wish to export an animation to be munged, it is best to select both ```Export As Skeleton``` and ```Export With Animation.```
 
