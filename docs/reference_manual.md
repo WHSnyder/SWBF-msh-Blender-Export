@@ -510,6 +510,8 @@ Distortion maps control how Refractive materials distort the scene behind them. 
 
 ## Skeletons and Skinning
 
+This guide assumes you have working knowledge of Blender Armatures and deformation with vertex groups, as well as how to create, edit, pose, and keyframe bones in an Armature.
+
 ### XSI vs Blender
 
 XSI has a very free-form take on skeletons and skinning.  Models can be skinned to other models in a rather arbitrary manner, whereas in Blender, a model can only be skinned if it is parented to an armature and can only skin to bones in that armature.  
@@ -571,11 +573,17 @@ Skinning/vertex-weighting in Blender is a very complex topic, these docs will fo
 
 ## Animation
 
+This guide assumes you know how Armatures work, and how to switch between, create, and edit Actions in Blender.
+
 ### Actions and Animations
 
-This exporter can convert Actions used by Armatures to ZeroEngine-compatible animations.  When [exporting an action](#export-with-animation), all frames between and including the first and last *keyed frames* of the action will be included.  Don't worry about using as few keyframes as possible to save a smaller animation.  The exporter will record bone positions for each frame of the animation, regardless of whether or not the frame is actually keyed.
+This exporter can convert Actions used by Armatures to ZeroEngine-compatible animations.  If an armature is found among the objects to be exported, the exporter can include the armature's currently set Action as an animation in the resulting file.  As of now, animation via Armature is the only way to export Blender Actions.
 
-If you have armature bones that are weighted to by a skinned object, but you do not wish for them to be exported as part of the animated skeleton, don't keyframe them.  The exported animation will only include bones that are explicitly keyframed at least once in the action.
+Since ```zenasset``` only supports an animation frame rate of 29.97 fps, 
+
+When exporting an Action, all frames between and including the first and last *keyframes* of the Action will be included.  For example, if the first and last keyframes are 0 and 5, the exporter will record bone positions at frames 0, 1, 2, 3, 4, and 5, regardless of how many keyframes exist in between.  Don't worry about using as few keyframes as possible to save a smaller animation as the exporter will record bone positions and rotations for each frame.
+
+If you have armature bones that are weighted to by a skinned object, but you do not wish for them to be exported as part of the animated skeleton, don't keyframe them.  The exported animation will only include bones that are explicitly keyframed at least once in the Action.
 
 
 ### Exporter Animation Options
@@ -592,11 +600,13 @@ So, if you wish to export an animation to be munged, it is best to select both `
 
 ### Animation notes:  
 
-1. If exporting an animation, your exported MSH file's name should be that of the animation/action itself.
+1. If exporting an animation, your exported msh file's name should be that of the animation/action itself.
 
 2. Bone constraints are not exported.
 
 3. Don't include multiple armatures in one export!
+
+4. Blender's animation speed defaults to 24 fps.  If you want to see exactly how your animation will play ingame, set it to 29.97 in the `Output Properties` section of the `Properties` editor.
 
 
 ## Appendices
