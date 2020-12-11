@@ -27,8 +27,6 @@ def save_scene(output_file, scene: Scene):
 
             for index, model in enumerate(scene.models):
 
-                #print("Name: {:.10}, Pos: {:15}, Rot: {:15}, Parent: {}".format(model.name, vec_to_str(model.transform.translation), quat_to_str(model.transform.rotation), model.parent))
-
                 with msh2.create_child("MODL") as modl:
                     _write_modl(modl, model, index, material_index, model_index)
 
@@ -39,7 +37,7 @@ def save_scene(output_file, scene: Scene):
             with hedr.create_child("BLN2") as bln2:
                 _write_bln2(bln2, scene.animation)
 
-            with hedr.create_child("ANM2") as anm2: #simple for now              
+            with hedr.create_child("ANM2") as anm2:        
                 _write_anm2(anm2, scene.animation)
 
         with hedr.create_child("CL1L"):
@@ -241,24 +239,25 @@ def _write_wght(wght: Writer, weights: List[List[VertexWeight]]):
 def _write_envl(envl: Writer, model: Model, model_index: Dict[str, int]):
     envl.write_u32(len(model.bone_map))
     for bone_name in model.bone_map:
-        envl.write_u32(model_index[bone_name])
+        envl.write_u32(model_index[bone_name] + 1)
 
 '''
 SKELETON CHUNKS
 '''
 def _write_bln2(bln2: Writer, anim: Animation):
-    bones = anim.bone_frames.keys()
-    bln2.write_u32(len(bones))
+    bone_crcs = anim.bone_frames.keys()
+    bln2.write_u32(len(bone_crcs))
 
-    for boneName in bones:
-        bln2.write_u32(crc(boneName), 0) 
+    for bone_crc in bone_crcs:
+        bln2.write_u32(bone_crc, 0) 
 
 def _write_skl2(skl2: Writer, anim: Animation):
-    bones = anim.bone_frames.keys()
-    skl2.write_u32(len(bones)) 
+    bone_crcs = anim.bone_frames.keys()
+    skl2.write_u32(len(bone_crcs)) 
 
-    for boneName in bones:
-        skl2.write_u32(crc(boneName), 0) #default values from docs
+    for bone_crc in bone_crcs:
+        # default values from docs
+        skl2.write_u32(bone_crc, 0) 
         skl2.write_f32(1.0, 0.0, 0.0)
 
 '''
@@ -275,7 +274,7 @@ def _write_anm2(anm2: Writer, anim: Animation):
             cycl.write_u8(0)
         
         cycl.write_f32(anim.framerate)
-        cycl.write_u32(0) #what does play style refer to?
+        cycl.write_u32(0) # what does play style refer to?
         cycl.write_u32(anim.start_index, anim.end_index) #first frame indices
 
 
@@ -283,18 +282,20 @@ def _write_anm2(anm2: Writer, anim: Animation):
         
         kfr3.write_u32(len(anim.bone_frames))
 
-        for boneName in anim.bone_frames:
-            kfr3.write_u32(crc(boneName))
-            kfr3.write_u32(0) #what is keyframe type?
+        for bone_crc in anim.bone_frames:
+            kfr3.write_u32(bone_crc)
+            kfr3.write_u32(0) # always 0
 
-            translation_frames, rotation_frames = anim.bone_frames[boneName]
+            translation_frames, rotation_frames = anim.bone_frames[bone_crc]
 
             kfr3.write_u32(len(translation_frames), len(rotation_frames))
 
             for frame in translation_frames:
+                t = frame.translation
                 kfr3.write_u32(frame.index)
-                kfr3.write_f32(frame.translation.x, frame.translation.y, frame.translation.z)
+                kfr3.write_f32(t.x, t.y, t.z)
 
             for frame in rotation_frames:
+                r = frame.rotation
                 kfr3.write_u32(frame.index)
-                kfr3.write_f32(frame.rotation.x, frame.rotation.y, frame.rotation.z, frame.rotation.w)
+                kfr3.write_f32(r.x, r.y, r.z, r.w)

@@ -4,7 +4,7 @@ Full credits to Benedikt Schatz from https://github.com/Schlechtwetterfront/xsiz
 
 
 # CRC lookup table.
-TABLE_32 = (
+table32_lookup = (
     0x00000000, 0x04C11DB7, 0x09823B6E, 0x0D4326D9,
     0x130476DC, 0x17C56B6B, 0x1A864DB2, 0x1E475005,
     0x2608EDB8, 0x22C9F00F, 0x2F8AD6D6, 0x2B4BCB61,
@@ -72,7 +72,7 @@ TABLE_32 = (
 )
 
 # Used to calculate the lowercase CRC.
-TOLOWER = (
+lowercase_lookup = (
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
     0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
     0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
@@ -108,18 +108,10 @@ TOLOWER = (
 )
 
 
-def return_lowest_bits(n):
-    '''Simulate unsigned behavior.'''
-    return n & 0xFFFFFFFF
-
-
-def crc(string):
-    '''Calculate the Zero CRC from string and return it as number.'''
-    crc_ = 0
-    crc_ = return_lowest_bits(~crc_)
+def to_crc(string):
+    crc_ = ~0 & 0xFFFFFFFF
     if string:
         for char in string:
-            ind = (crc_ >> 24)
-            ind = ind ^ TOLOWER[ord(char)]
-            crc_ = return_lowest_bits(crc_ << 8) ^ TABLE_32[ind]
-    return return_lowest_bits(~crc_)
+            ind = (crc_ >> 24) ^ lowercase_lookup[ord(char)]
+            crc_ = ((crc_ << 8) & 0xFFFFFFFF) ^ table32_lookup[ind]
+    return ~crc_ & 0xFFFFFFFF

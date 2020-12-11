@@ -81,9 +81,10 @@ def create_scene(generate_triangle_strips: bool, apply_modifiers: bool, export_t
         else:
             raise Exception("Export Error: Could not find an armature object from which to export an animation!")
 
-    if skel_only and root.model_type == ModelType.NULL:
+    if skel_only and root.model_type != ModelType.STATIC:
         # For ZenAsset
-    	inject_dummy_data(root)
+        inject_dummy_data(root)
+        root.model_type = ModelType.STATIC
 
     return scene
 
